@@ -1,0 +1,14 @@
+/home/core/code/projnew/target/debug/deps/argparse-ecbe31777931d913.d: /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/lib.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/action.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/parser.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/generic.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/custom.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/help.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/print.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/bool.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/num.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/from_cli.rs
+
+/home/core/code/projnew/target/debug/deps/libargparse-ecbe31777931d913.rmeta: /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/lib.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/action.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/parser.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/generic.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/custom.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/help.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/print.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/bool.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/num.rs /home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/from_cli.rs
+
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/lib.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/action.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/parser.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/generic.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/custom.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/help.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/print.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/bool.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/num.rs:
+/home/core/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/argparse-0.2.2/src/from_cli.rs:
