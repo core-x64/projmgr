@@ -51,7 +51,6 @@ pub struct App {
     pub exit: bool,
     tab: AppTab,
 
-    // Mock Data States
     project_state: ListState,
     projects: Vec<&'static str>,
 
@@ -92,7 +91,6 @@ impl App {
     fn draw(&mut self, frame: &mut Frame) {
         let size = frame.area();
 
-        // Layout: Tab bar (Top), Main Content (Middle), Footer (Bottom)
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
@@ -136,8 +134,6 @@ impl App {
 
         frame.render_widget(tabs, area);
     }
-
-    // --- TAB RENDERING METHODS ---
 
     fn draw_projects(&mut self, frame: &mut Frame, area: Rect) {
         let chunks = Layout::default()
@@ -312,14 +308,11 @@ impl App {
         frame.render_widget(paragraph, area);
     }
 
-    // --- EVENT HANDLING ---
-
     fn handle_key_event(&mut self, key: KeyEvent) -> io::Result<()> {
         if key.kind != KeyEventKind::Press {
             return Ok(());
         }
 
-        // Global keybinds
         match key.code {
             KeyCode::Char('q') => self.exit = true,
             KeyCode::Right => self.tab = self.tab.next(),
@@ -329,7 +322,6 @@ impl App {
             _ => {}
         }
 
-        // Context-sensitive keybinds (where you will implement functionality later)
         match (self.tab, key.code) {
             (AppTab::Projects, KeyCode::Char('c')) => { /* Create project */ }
             (AppTab::Projects, KeyCode::Char('a')) => { /* Add project */ }

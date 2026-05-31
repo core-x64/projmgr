@@ -1,8 +1,10 @@
 use clap::{Parser, ValueEnum};
+use std::io;
+
+mod ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Language {
-    // This maps -l rust, -l rs, or -l Rust directly to Language::Rust
     #[clap(alias = "rs")]
     Rust,
     #[clap(alias = "py")]
@@ -77,7 +79,19 @@ pub fn parse_arguments() -> CliArgs {
     args
 }
 
-fn main() {
+fn main() -> io::Result<()> {
+    // parse arguments
     let args = parse_arguments();
-    println!("{:?}", args);
+
+    // setup terminal
+    let mut terminal = ratatui::init();
+
+    // initialize and run ui 
+    let mut app = ui::App::new();
+    let app_result = app.run(&mut terminal);
+
+    // destroy terminal
+    ratatui::restore();
+    
+    app_result
 }
