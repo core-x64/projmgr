@@ -23,6 +23,14 @@ pub struct TemplateDef {
     pub name: String,
     #[serde(default)]
     pub structure: HashMap<String, HashMap<String, String>>,
+    #[serde(default)]
+    pub build_dir: Option<String>,
+    #[serde(default)]
+    pub build_cmd: Option<String>,
+    #[serde(default)]
+    pub output_path: Option<String>,
+    #[serde(default)]
+    pub init_cmd: Option<String>,
 }
 
 pub trait ProjectProvider {
