@@ -2,6 +2,7 @@ use clap::{Parser, ValueEnum};
 use std::io;
 
 mod ui;
+mod data;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Language {
@@ -35,10 +36,10 @@ pub struct CliArgs {
     #[arg(short, long, default_value_t = false)]
     pub quiet: bool,
 
-    #[arg(short, long, value_enum, default_value_t = Language::Rust)]
+    #[arg(short, long, value_enum)]
     pub language: Language,
 
-    #[arg(short, long, value_enum, default_value_t = Template::Standard)]
+    #[arg(short, long, value_enum)]
     pub template: Template,
 
     #[arg(value_name = "NAME")]
@@ -80,18 +81,14 @@ pub fn parse_arguments() -> CliArgs {
 }
 
 fn main() -> io::Result<()> {
-    // parse arguments
     let args = parse_arguments();
-
-    // setup terminal
     let mut terminal = ratatui::init();
 
-    // initialize and run ui 
-    let mut app = ui::App::new();
+    let provider = Box::new(data::SqliteProjectProvider::new("projects.db").expect("Failed to init DB"));
+    
+    let mut app = ui::App::new(provider);
     let app_result = app.run(&mut terminal);
 
-    // destroy terminal
     ratatui::restore();
-    
     app_result
 }

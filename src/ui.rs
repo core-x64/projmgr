@@ -88,9 +88,8 @@ pub struct App {
     input_text: String,
     input_title: String,
 
-    projects: Vec<Project>,
-    cleaner_items: Vec<CleanerItem>,
-    templates: Vec<TemplateDef>,
+    pub projects: Vec<Project>,
+    pub provider: Box<dyn ProjectProvider>,
 
     project_state: ListState,
     cleaner_state: ListState,
@@ -98,18 +97,15 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(provider: Box<dyn ProjectProvider>) -> Self {
         Self {
             exit: false,
             tab: AppTab::Projects,
             input_mode: InputMode::Normal,
             input_text: String::new(),
             input_title: String::new(),
-
+            provider,
             projects: Vec::new(),
-            cleaner_items: Vec::new(),
-            templates: Vec::new(),
-
             project_state: ListState::default(),
             cleaner_state: ListState::default(),
             template_state: ListState::default(),
