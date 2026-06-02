@@ -17,8 +17,8 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs},
 };
-use walkdir::WalkDir;
 use serde::{Deserialize, Serialize};
+use walkdir::WalkDir;
 
 use crate::data::{AppResult, ProjectData, ProjectProvider, TemplateDef};
 use crate::security::{decrypt_env_file, encrypt_env_file};
@@ -58,29 +58,83 @@ pub enum Command {
     CreationTemplateConfirm,
     CancelCreation,
     AddProjectPath(PathBuf),
-    OpenIde { project_path: PathBuf },
-    OpenTemplate { template_path: PathBuf },
-    RemoveProject { project_path: PathBuf },
-    GitCommit { project_path: PathBuf, message: String },
-    GitPush { project_path: PathBuf },
-    GitPull { project_path: PathBuf },
-    GitBranch { project_path: PathBuf, branch: String },
-    GitCheckoutNew { project_path: PathBuf, branch: String },
-    GitMerge { project_path: PathBuf, branch: String },
-    GitStatus { project_path: PathBuf },
-    GitAdd { project_path: PathBuf, paths: Vec<String> },
-    ScanCleaner { project_path: PathBuf },
-    DeleteArtifacts { paths: Vec<PathBuf> },
-    ArchiveProject { project_path: PathBuf },
-    EncryptEnv { project_path: PathBuf, password: String },
-    DecryptEnv { project_path: PathBuf, password: String },
-    CreateTemplate { name: String },
-    DeleteTemplate { name: String },
-    GitInit { project_path: PathBuf },
-    GithubLink { project_path: PathBuf, repo_name: String },
-    ArchiveAndDeleteProject { project_path: PathBuf },
-    BuildProject { project_path: PathBuf },
-    RunProject { project_path: PathBuf },
+    OpenIde {
+        project_path: PathBuf,
+    },
+    OpenTemplate {
+        template_path: PathBuf,
+    },
+    RemoveProject {
+        project_path: PathBuf,
+    },
+    GitCommit {
+        project_path: PathBuf,
+        message: String,
+    },
+    GitPush {
+        project_path: PathBuf,
+    },
+    GitPull {
+        project_path: PathBuf,
+    },
+    GitBranch {
+        project_path: PathBuf,
+        branch: String,
+    },
+    GitCheckoutNew {
+        project_path: PathBuf,
+        branch: String,
+    },
+    GitMerge {
+        project_path: PathBuf,
+        branch: String,
+    },
+    GitStatus {
+        project_path: PathBuf,
+    },
+    GitAdd {
+        project_path: PathBuf,
+        paths: Vec<String>,
+    },
+    ScanCleaner {
+        project_path: PathBuf,
+    },
+    DeleteArtifacts {
+        paths: Vec<PathBuf>,
+    },
+    ArchiveProject {
+        project_path: PathBuf,
+    },
+    EncryptEnv {
+        project_path: PathBuf,
+        password: String,
+    },
+    DecryptEnv {
+        project_path: PathBuf,
+        password: String,
+    },
+    CreateTemplate {
+        name: String,
+    },
+    DeleteTemplate {
+        name: String,
+    },
+    GitInit {
+        project_path: PathBuf,
+    },
+    GithubLink {
+        project_path: PathBuf,
+        repo_name: String,
+    },
+    ArchiveAndDeleteProject {
+        project_path: PathBuf,
+    },
+    BuildProject {
+        project_path: PathBuf,
+    },
+    RunProject {
+        project_path: PathBuf,
+    },
 }
 
 #[derive(Debug, Clone, Default)]
@@ -211,7 +265,9 @@ pub fn load_config() -> AppConfig {
                     // Validate and sanitize config values
                     let mut config = parsed;
                     // Ensure github_visibility is valid
-                    if !["private", "public", "internal"].contains(&config.github_visibility.as_str()) {
+                    if !["private", "public", "internal"]
+                        .contains(&config.github_visibility.as_str())
+                    {
                         config.github_visibility = "private".to_string();
                     }
                     return config;
@@ -307,7 +363,11 @@ impl App {
         Ok(())
     }
 
-    pub fn handle_command(&mut self, command: Command, terminal: Option<&mut DefaultTerminal>) -> AppResult<()> {
+    pub fn handle_command(
+        &mut self,
+        command: Command,
+        terminal: Option<&mut DefaultTerminal>,
+    ) -> AppResult<()> {
         match command {
             Command::RefreshData => {
                 self.projects = self.provider.get_all_projects()?;
@@ -354,13 +414,17 @@ impl App {
                     args.insert(2, "-a".into());
                 }
                 self.action_git(project_path, args, Some("Commit complete".into()))
-            },
-            Command::GitPush { project_path } => {
-                self.action_git(project_path, vec!["push".into()], Some("Push complete".into()))
             }
-            Command::GitPull { project_path } => {
-                self.action_git(project_path, vec!["pull".into()], Some("Pull complete".into()))
-            }
+            Command::GitPush { project_path } => self.action_git(
+                project_path,
+                vec!["push".into()],
+                Some("Push complete".into()),
+            ),
+            Command::GitPull { project_path } => self.action_git(
+                project_path,
+                vec!["pull".into()],
+                Some("Pull complete".into()),
+            ),
             Command::GitBranch {
                 project_path,
                 branch,
@@ -386,7 +450,10 @@ impl App {
                 Some("Merge complete".into()),
             ),
             Command::GitStatus { project_path } => self.action_git_status(project_path),
-            Command::GitAdd { project_path, paths } => self.action_git_add(project_path, paths),
+            Command::GitAdd {
+                project_path,
+                paths,
+            } => self.action_git_add(project_path, paths),
             Command::ScanCleaner { project_path } => self.action_scan_cleaner(project_path),
             Command::DeleteArtifacts { paths } => self.action_delete_artifacts(paths),
             Command::ArchiveProject { project_path } => self.action_archive_project(project_path),
@@ -400,10 +467,19 @@ impl App {
             } => self.action_decrypt_env(project_path, password),
             Command::CreateTemplate { name } => self.create_new_template(name),
             Command::DeleteTemplate { name } => self.delete_template(name),
-            Command::OpenTemplate { template_path } => self.action_open_template(template_path, terminal),
+            Command::OpenTemplate { template_path } => {
+                self.action_open_template(template_path, terminal)
+            }
             Command::GitInit { project_path } => self.action_git_init(project_path),
-            Command::GithubLink { project_path, repo_name } => self.action_github_link(project_path, repo_name),
-            Command::ArchiveAndDeleteProject { project_path } => self.action_archive_and_delete_project(project_path),
+            Command::GithubLink {
+                project_path,
+                repo_name,
+            } => self.action_github_link(project_path, repo_name),
+            Command::ArchiveAndDeleteProject { project_path } => {
+                self.action_archive_and_delete_project(project_path)
+            }
+            Command::RunProject { project_path } => self.action_run_project(project_path),
+            Command::BuildProject { project_path } => self.action_build_project(project_path),
         }
     }
 
@@ -455,7 +531,7 @@ impl App {
             self.handle_creation_template_key(key, terminal);
             return;
         }
-        
+
         match key.code {
             KeyCode::Char('x') => {
                 let _ = self.handle_command(Command::DismissError, Some(terminal));
@@ -484,7 +560,7 @@ impl App {
                     DashboardPanel::Projects => DashboardPanel::Templates,
                     DashboardPanel::Templates => DashboardPanel::Projects,
                 };
-            },
+            }
             KeyCode::Char('m') => {
                 self.minimal_mode = !self.minimal_mode;
                 if self.minimal_mode {
@@ -492,7 +568,7 @@ impl App {
                 } else {
                     self.status_message = Some("Minimal mode disabled".to_string());
                 }
-            },
+            }
             KeyCode::Char('j') | KeyCode::Down => {
                 self.list_next();
             }
@@ -513,8 +589,12 @@ impl App {
                     if let Some(template) = self.selected_template() {
                         if let Some(home_dir) = dirs::home_dir() {
                             let template_dir = home_dir.join(".config/unit-projman/templates");
-                            let template_path = template_dir.join(format!("{}.json", template.name));
-                            let result = self.handle_command(Command::OpenTemplate { template_path }, Some(terminal));
+                            let template_path =
+                                template_dir.join(format!("{}.json", template.name));
+                            let result = self.handle_command(
+                                Command::OpenTemplate { template_path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         } else {
                             self.last_error = Some("Unable to resolve HOME directory".to_string());
@@ -552,17 +632,25 @@ impl App {
                         self.skip_template_selection = true;
                     }
                 }
-            }
+            },
             KeyCode::Char('d') | KeyCode::Delete => match self.dashboard_panel {
                 DashboardPanel::Projects => {
                     if let Some(path) = self.selected_project_path() {
-                        let result = self.handle_command(Command::RemoveProject { project_path: path }, Some(terminal));
+                        let result = self.handle_command(
+                            Command::RemoveProject { project_path: path },
+                            Some(terminal),
+                        );
                         self.apply(result);
                     }
                 }
                 DashboardPanel::Templates => {
                     if let Some(template) = self.selected_template() {
-                        let result = self.handle_command(Command::DeleteTemplate { name: template.name.clone() }, Some(terminal));
+                        let result = self.handle_command(
+                            Command::DeleteTemplate {
+                                name: template.name.clone(),
+                            },
+                            Some(terminal),
+                        );
                         self.apply(result);
                     }
                 }
@@ -600,15 +688,20 @@ impl App {
                         if self.minimal_mode {
                             self.status_message = Some("[e]ncrypt  [d]ecrypt".to_string());
                         } else {
-                            self.status_message = Some("Secrets prefix: [e]ncrypt  [d]ecrypt".to_string());
+                            self.status_message =
+                                Some("Secrets prefix: [e]ncrypt  [d]ecrypt".to_string());
                         }
                     }
                     KeyCode::Char('c') => {
                         self.pending_prefix = PendingKeyPrefix::Cleaner;
                         if self.minimal_mode {
-                            self.status_message = Some("[a]rchive-delete  [s]can  [d]elete-artifacts".to_string());
+                            self.status_message =
+                                Some("[a]rchive-delete  [s]can  [d]elete-artifacts".to_string());
                         } else {
-                            self.status_message = Some("Cleaner prefix: [a]rchive-delete  [s]can  [d]elete-artifacts".to_string());
+                            self.status_message = Some(
+                                "Cleaner prefix: [a]rchive-delete  [s]can  [d]elete-artifacts"
+                                    .to_string(),
+                            );
                         }
                     }
                     _ => {
@@ -617,13 +710,19 @@ impl App {
                             match key.code {
                                 KeyCode::Char('b') => {
                                     if let Some(path) = self.selected_project_path() {
-                                        let result = self.handle_command(Command::BuildProject { project_path: path }, Some(terminal));
+                                        let result = self.handle_command(
+                                            Command::BuildProject { project_path: path },
+                                            Some(terminal),
+                                        );
                                         self.apply(result);
                                     }
                                 }
                                 KeyCode::Char('r') => {
                                     if let Some(path) = self.selected_project_path() {
-                                        let result = self.handle_command(Command::RunProject { project_path: path }, Some(terminal));
+                                        let result = self.handle_command(
+                                            Command::RunProject { project_path: path },
+                                            Some(terminal),
+                                        );
                                         self.apply(result);
                                     }
                                 }
@@ -631,6 +730,7 @@ impl App {
                             }
                         }
                     }
+                }
             }
             PendingKeyPrefix::Git => {
                 self.pending_prefix = PendingKeyPrefix::None;
@@ -645,32 +745,47 @@ impl App {
                     }
                     KeyCode::Char('p') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::GitPush { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::GitPush { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
                     KeyCode::Char('u') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::GitPull { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::GitPull { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
                     KeyCode::Char('s') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::GitStatus { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::GitStatus { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
                     KeyCode::Char('i') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::GitInit { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::GitInit { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
                     KeyCode::Char('h') => {
                         if let Some(project) = self.selected_project() {
                             self.prompt = Some(PromptState {
-                                title: format!("Create & Link GitHub repository for '{}'", project.name),
+                                title: format!(
+                                    "Create & Link GitHub repository for '{}'",
+                                    project.name
+                                ),
                                 input: project.name.clone(),
                                 action: PromptAction::GithubLink,
                             });
@@ -731,13 +846,19 @@ impl App {
                 match key.code {
                     KeyCode::Char('a') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::ArchiveAndDeleteProject { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::ArchiveAndDeleteProject { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
                     KeyCode::Char('s') => {
                         if let Some(path) = self.selected_project_path() {
-                            let result = self.handle_command(Command::ScanCleaner { project_path: path }, Some(terminal));
+                            let result = self.handle_command(
+                                Command::ScanCleaner { project_path: path },
+                                Some(terminal),
+                            );
                             self.apply(result);
                         }
                     }
@@ -747,7 +868,8 @@ impl App {
                             .iter()
                             .map(|item| item.path.clone())
                             .collect::<Vec<_>>();
-                        let result = self.handle_command(Command::DeleteArtifacts { paths }, Some(terminal));
+                        let result =
+                            self.handle_command(Command::DeleteArtifacts { paths }, Some(terminal));
                         self.apply(result);
                     }
                     _ => {
@@ -789,94 +911,137 @@ impl App {
         }
         match prompt.action {
             PromptAction::AddProjectPath => {
-                let result = self.handle_command(Command::AddProjectPath(PathBuf::from(input)), Some(terminal));
-                self.apply(result);
+                match crate::data::SqliteProjectProvider::expand_path(&input) {
+                    Ok(path) => {
+                        // Validate that the project path exists
+                        if !path.exists() {
+                            self.last_error =
+                                Some(format!("Project path does not exist: {}", path.display()));
+                            return;
+                        }
+                        let result =
+                            self.handle_command(Command::AddProjectPath(path), Some(terminal));
+                        self.apply(result);
+                    }
+                    Err(err) => {
+                        self.last_error = Some(err);
+                    }
+                }
             }
             PromptAction::CreateTemplate => {
-                let result = self.handle_command(Command::CreateTemplate { name: input }, Some(terminal));
+                let result =
+                    self.handle_command(Command::CreateTemplate { name: input }, Some(terminal));
                 self.apply(result);
             }
             PromptAction::GitCommit => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GitCommit {
-                        project_path: path,
-                        message: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GitCommit {
+                            project_path: path,
+                            message: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::GitBranch => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GitBranch {
-                        project_path: path,
-                        branch: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GitBranch {
+                            project_path: path,
+                            branch: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::GitCheckoutNew => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GitCheckoutNew {
-                        project_path: path,
-                        branch: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GitCheckoutNew {
+                            project_path: path,
+                            branch: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::GitMerge => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GitMerge {
-                        project_path: path,
-                        branch: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GitMerge {
+                            project_path: path,
+                            branch: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::EncryptEnv => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::EncryptEnv {
-                        project_path: path,
-                        password: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::EncryptEnv {
+                            project_path: path,
+                            password: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::DecryptEnv => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::DecryptEnv {
-                        project_path: path,
-                        password: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::DecryptEnv {
+                            project_path: path,
+                            password: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::GithubLink => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GithubLink {
-                        project_path: path,
-                        repo_name: input,
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GithubLink {
+                            project_path: path,
+                            repo_name: input,
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::GitAdd => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::GitAdd {
-                        project_path: path,
-                        paths: vec![input],
-                    }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::GitAdd {
+                            project_path: path,
+                            paths: vec![input],
+                        },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::BuildProject => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::BuildProject { project_path: path }, Some(terminal));
+                    let result = self.handle_command(
+                        Command::BuildProject { project_path: path },
+                        Some(terminal),
+                    );
                     self.apply(result);
                 }
             }
             PromptAction::RunProject => {
                 if let Some(path) = self.selected_project_path() {
-                    let result = self.handle_command(Command::RunProject { project_path: path }, Some(terminal));
+                    let result = self
+                        .handle_command(Command::RunProject { project_path: path }, Some(terminal));
                     self.apply(result);
                 }
             }
@@ -892,12 +1057,18 @@ impl App {
             }
             KeyCode::Backspace => {
                 self.creation_name_input.pop();
-                let result = self.handle_command(Command::UpdateCreationName(self.creation_name_input.clone()), Some(terminal));
+                let result = self.handle_command(
+                    Command::UpdateCreationName(self.creation_name_input.clone()),
+                    Some(terminal),
+                );
                 self.apply(result);
             }
             KeyCode::Char(c) => {
                 self.creation_name_input.push(c);
-                let result = self.handle_command(Command::UpdateCreationName(self.creation_name_input.clone()), Some(terminal));
+                let result = self.handle_command(
+                    Command::UpdateCreationName(self.creation_name_input.clone()),
+                    Some(terminal),
+                );
                 self.apply(result);
             }
             KeyCode::Enter => {
@@ -942,12 +1113,19 @@ impl App {
     fn draw_dashboard(&mut self, frame: &mut Frame, area: Rect) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3), Constraint::Min(0), Constraint::Length(3)])
+            .constraints([
+                Constraint::Length(3),
+                Constraint::Min(0),
+                Constraint::Length(3),
+            ])
             .split(area);
 
         let title_line = Line::from(vec![
             Span::styled(" ◆ ", Style::default().fg(CAT_MAUVE)),
-            Span::styled("UNIT PROJECT MANAGER", Style::default().fg(CAT_TEXT).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "UNIT PROJECT MANAGER",
+                Style::default().fg(CAT_TEXT).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(" ◆ ", Style::default().fg(CAT_MAUVE)),
         ]);
         let header = Paragraph::new(title_line)
@@ -967,9 +1145,13 @@ impl App {
 
         // Projects List
         let is_projects_focused = self.dashboard_panel == DashboardPanel::Projects;
-        let projects_border_color = if is_projects_focused { CAT_MAUVE } else { CAT_SUBTEXT0 };
+        let projects_border_color = if is_projects_focused {
+            CAT_MAUVE
+        } else {
+            CAT_SUBTEXT0
+        };
         let projects_title = format!(" Projects ({}) ", self.projects.len());
-        
+
         let project_items = self
             .projects
             .iter()
@@ -985,14 +1167,18 @@ impl App {
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded)
                     .border_style(Style::default().fg(projects_border_color))
-                    .title(projects_title)
+                    .title(projects_title),
             )
             .highlight_style(Self::highlight_style());
         frame.render_stateful_widget(project_list, left_chunks[0], &mut self.project_state);
 
         // Templates List
         let is_templates_focused = self.dashboard_panel == DashboardPanel::Templates;
-        let templates_border_color = if is_templates_focused { CAT_MAUVE } else { CAT_SUBTEXT0 };
+        let templates_border_color = if is_templates_focused {
+            CAT_MAUVE
+        } else {
+            CAT_SUBTEXT0
+        };
         let templates_title = format!(" Templates ({}) ", self.templates.len());
 
         let template_items = self
@@ -1010,7 +1196,7 @@ impl App {
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded)
                     .border_style(Style::default().fg(templates_border_color))
-                    .title(templates_title)
+                    .title(templates_title),
             )
             .highlight_style(Self::highlight_style());
         frame.render_stateful_widget(template_list, left_chunks[1], &mut self.template_state);
@@ -1027,23 +1213,36 @@ impl App {
                     let mut lines = vec![
                         Line::from(vec![
                             Span::styled("Path:           ", Style::default().fg(CAT_SUBTEXT0)),
-                            Span::styled(project.path.display().to_string(), Style::default().fg(CAT_BLUE)),
+                            Span::styled(
+                                project.path.display().to_string(),
+                                Style::default().fg(CAT_BLUE),
+                            ),
                         ]),
                         Line::from(vec![
                             Span::styled("Last Accessed:  ", Style::default().fg(CAT_SUBTEXT0)),
-                            Span::styled(format_unix_time(project.last_accessed), Style::default().fg(CAT_TEXT)),
+                            Span::styled(
+                                format_unix_time(project.last_accessed),
+                                Style::default().fg(CAT_TEXT),
+                            ),
                         ]),
                         Line::from(vec![
                             Span::styled("Template Hint:  ", Style::default().fg(CAT_SUBTEXT0)),
-                            Span::styled(project.template_name.clone().unwrap_or_else(|| "None".to_string()), Style::default().fg(CAT_MAUVE)),
+                            Span::styled(
+                                project
+                                    .template_name
+                                    .clone()
+                                    .unwrap_or_else(|| "None".to_string()),
+                                Style::default().fg(CAT_MAUVE),
+                            ),
                         ]),
                         Line::raw(""),
                     ];
                     let file_lines = get_directory_tree_lines(&project.path, "", 0, 3);
                     if file_lines.is_empty() {
-                        lines.push(Line::from(vec![
-                            Span::styled(" (Empty project or path does not exist on disk) ", Style::default().fg(CAT_RED).add_modifier(Modifier::ITALIC))
-                        ]));
+                        lines.push(Line::from(vec![Span::styled(
+                            " (Empty project or path does not exist on disk) ",
+                            Style::default().fg(CAT_RED).add_modifier(Modifier::ITALIC),
+                        )]));
                     } else {
                         lines.extend(file_lines);
                     }
@@ -1087,14 +1286,14 @@ impl App {
                 } else {
                     "Tab switch panel • j/k select • Enter open options • c create project • a add path • d untrack • q quit • m minimal mode"
                 }
-            },
+            }
             DashboardPanel::Templates => {
                 if self.minimal_mode {
                     "Tab switch • j/k select • Enter JSON • a create proj • c template • d template • q quit • m minimal"
                 } else {
                     "Tab switch panel • j/k select • Enter edit JSON • a create project with template • c create template • d delete template • q quit • m minimal mode"
                 }
-            },
+            }
         };
 
         let line = Line::from(vec![
@@ -1132,9 +1331,15 @@ impl App {
 
         let header_line = Line::from(vec![
             Span::styled(" PROJECT: ", Style::default().fg(CAT_SUBTEXT0)),
-            Span::styled(&selected_project.name, Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                &selected_project.name,
+                Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("  •  ", Style::default().fg(CAT_SUBTEXT0)),
-            Span::styled(selected_project.path.display().to_string(), Style::default().fg(CAT_BLUE)),
+            Span::styled(
+                selected_project.path.display().to_string(),
+                Style::default().fg(CAT_BLUE),
+            ),
         ]);
         let header = Paragraph::new(header_line)
             .alignment(ratatui::layout::Alignment::Center)
@@ -1145,7 +1350,10 @@ impl App {
             .iter()
             .map(|tab| Line::from(tab.title().to_string()))
             .collect::<Vec<_>>();
-        let selected = ProjectTab::ALL.iter().position(|tab| *tab == self.project_tab).unwrap_or(0);
+        let selected = ProjectTab::ALL
+            .iter()
+            .position(|tab| *tab == self.project_tab)
+            .unwrap_or(0);
         let tabs = Tabs::new(titles)
             .block(Self::base_block(" Project Options "))
             .style(Style::default().fg(CAT_SUBTEXT0))
@@ -1162,107 +1370,170 @@ impl App {
         let left_content = match self.project_tab {
             ProjectTab::Overview => {
                 vec![
+                    Line::from(vec![Span::styled(
+                        "Overview Actions:",
+                        Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+                    )]),
+                    Line::raw(""),
                     Line::from(vec![
-                        Span::styled("Overview Actions:", Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD))
+                        Span::styled(
+                            " [o] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Open in Neovim (IDE)", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::raw(""),
                     Line::from(vec![
-                        Span::styled(" [o] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Open in Neovim (IDE)", Style::default().fg(CAT_TEXT))
-                    ]),
-                    Line::raw(""),
-                    Line::from(vec![
-                        Span::styled(" [Esc] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Return to Dashboard", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [Esc] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Return to Dashboard", Style::default().fg(CAT_TEXT)),
                     ]),
                 ]
             }
             ProjectTab::Cleaner => {
                 vec![
+                    Line::from(vec![Span::styled(
+                        "Cleaner Actions (Vim-Ergonomic):",
+                        Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+                    )]),
+                    Line::raw(""),
                     Line::from(vec![
-                        Span::styled("Cleaner Actions (Vim-Ergonomic):", Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD))
+                        Span::styled(
+                            " [c][s] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Scan heavy directories", Style::default().fg(CAT_TEXT)),
+                    ]),
+                    Line::from(vec![Span::styled(
+                        "         (target, node_modules, build, dist)",
+                        Style::default().fg(CAT_SUBTEXT0),
+                    )]),
+                    Line::raw(""),
+                    Line::from(vec![
+                        Span::styled(
+                            " [c][d] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Delete scanned artifacts", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::raw(""),
                     Line::from(vec![
-                        Span::styled(" [c][s] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Scan heavy directories", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [c][a] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            "Archive project & delete from disk",
+                            Style::default().fg(CAT_TEXT),
+                        ),
                     ]),
-                    Line::from(vec![
-                        Span::styled("         (target, node_modules, build, dist)", Style::default().fg(CAT_SUBTEXT0))
-                    ]),
-                    Line::raw(""),
-                    Line::from(vec![
-                        Span::styled(" [c][d] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Delete scanned artifacts", Style::default().fg(CAT_TEXT))
-                    ]),
-                    Line::raw(""),
-                    Line::from(vec![
-                        Span::styled(" [c][a] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Archive project & delete from disk", Style::default().fg(CAT_TEXT))
-                    ]),
-                    Line::from(vec![
-                        Span::styled("         (creates backups/Name.tar.gz)", Style::default().fg(CAT_SUBTEXT0))
-                    ]),
+                    Line::from(vec![Span::styled(
+                        "         (creates backups/Name.tar.gz)",
+                        Style::default().fg(CAT_SUBTEXT0),
+                    )]),
                 ]
             }
             ProjectTab::Secrets => {
                 vec![
+                    Line::from(vec![Span::styled(
+                        "Secrets Actions (Vim-Ergonomic):",
+                        Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+                    )]),
+                    Line::raw(""),
                     Line::from(vec![
-                        Span::styled("Secrets Actions (Vim-Ergonomic):", Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD))
+                        Span::styled(
+                            " [s][e] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Encrypt all .env files", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::raw(""),
                     Line::from(vec![
-                        Span::styled(" [s][e] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Encrypt all .env files", Style::default().fg(CAT_TEXT))
-                    ]),
-                    Line::raw(""),
-                    Line::from(vec![
-                        Span::styled(" [s][d] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Decrypt all .env files", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [s][d] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Decrypt all .env files", Style::default().fg(CAT_TEXT)),
                     ]),
                 ]
             }
             ProjectTab::Git => {
                 vec![
-                    Line::from(vec![
-                        Span::styled("Git Actions (Vim-Ergonomic):", Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD))
-                    ]),
+                    Line::from(vec![Span::styled(
+                        "Git Actions (Vim-Ergonomic):",
+                        Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+                    )]),
                     Line::raw(""),
                     Line::from(vec![
-                        Span::styled(" [g][s] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Git status (porcelain)", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][s] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Git status (porcelain)", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][c] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Git commit -m <message>", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][c] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Git commit -m <message>", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][p] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Git push to remote", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][p] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Git push to remote", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][u] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Git pull from remote", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][u] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Git pull from remote", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][i] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Initialize Git repository (git init)", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][i] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            "Initialize Git repository (git init)",
+                            Style::default().fg(CAT_TEXT),
+                        ),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][h] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Link & push to new GitHub repo (gh)", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][h] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            "Link & push to new GitHub repo (gh)",
+                            Style::default().fg(CAT_TEXT),
+                        ),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][b] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Checkout new branch (-b)", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][b] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Checkout new branch (-b)", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][n] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Create branch", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][n] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Create branch", Style::default().fg(CAT_TEXT)),
                     ]),
                     Line::from(vec![
-                        Span::styled(" [g][m] ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
-                        Span::styled("Merge branch", Style::default().fg(CAT_TEXT))
+                        Span::styled(
+                            " [g][m] ",
+                            Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("Merge branch", Style::default().fg(CAT_TEXT)),
                     ]),
                 ]
             }
@@ -1276,18 +1547,25 @@ impl App {
         // Right Pane: Output Result
         let right_content = match self.project_tab {
             ProjectTab::Overview => {
-                let tpl = selected_project.template_name.clone().unwrap_or_else(|| "None".to_string());
-                let auto_git_status = if self.config.auto_git { "Enabled" } else { "Disabled" };
+                let tpl = selected_project
+                    .template_name
+                    .clone()
+                    .unwrap_or_else(|| "None".to_string());
+                let auto_git_status = if self.config.auto_git {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                };
 
                 // Get template config for build/run options
-                let template_config = self.templates.iter()
-                    .find(|t| t.name == tpl)
-                    .cloned();
+                let template_config = self.templates.iter().find(|t| t.name == tpl).cloned();
 
-                let has_build_cmd = template_config.as_ref()
+                let has_build_cmd = template_config
+                    .as_ref()
                     .map(|t| t.build_cmd.is_some())
                     .unwrap_or(false);
-                let has_output_path = template_config.as_ref()
+                let has_output_path = template_config
+                    .as_ref()
                     .map(|t| t.output_path.is_some())
                     .unwrap_or(false);
 
@@ -1299,7 +1577,10 @@ impl App {
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Project Path:   ", Style::default().fg(CAT_SUBTEXT0)),
-                    Span::styled(selected_project.path.display().to_string(), Style::default().fg(CAT_TEXT)),
+                    Span::styled(
+                        selected_project.path.display().to_string(),
+                        Style::default().fg(CAT_TEXT),
+                    ),
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Template Hint:  ", Style::default().fg(CAT_SUBTEXT0)),
@@ -1307,7 +1588,10 @@ impl App {
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Last Accessed:  ", Style::default().fg(CAT_SUBTEXT0)),
-                    Span::styled(format_unix_time(selected_project.last_accessed), Style::default().fg(CAT_TEXT)),
+                    Span::styled(
+                        format_unix_time(selected_project.last_accessed),
+                        Style::default().fg(CAT_TEXT),
+                    ),
                 ]));
                 lines.push(Line::raw(""));
                 lines.push(Line::from(vec![
@@ -1319,9 +1603,12 @@ impl App {
                 // Git status section
                 if !self.git_status_summary.is_empty() {
                     lines.push(Line::raw(""));
-                    lines.push(Line::from(vec![
-                        Span::styled("Git Status:     ", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::BOLD)),
-                    ]));
+                    lines.push(Line::from(vec![Span::styled(
+                        "Git Status:     ",
+                        Style::default()
+                            .fg(CAT_SUBTEXT0)
+                            .add_modifier(Modifier::BOLD),
+                    )]));
                     for summary_line in &self.git_status_summary {
                         let fg = if summary_line.starts_with("Untracked") {
                             CAT_SUBTEXT0
@@ -1342,33 +1629,51 @@ impl App {
                 } else {
                     lines.push(Line::raw(""));
                     lines.push(Line::from(vec![
-                        Span::styled("Git Status:     ", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::BOLD)),
-                        Span::styled("No changes. Press [g][s] to refresh.", Style::default().fg(CAT_TEXT)),
+                        Span::styled(
+                            "Git Status:     ",
+                            Style::default()
+                                .fg(CAT_SUBTEXT0)
+                                .add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            "No changes. Press [g][s] to refresh.",
+                            Style::default().fg(CAT_TEXT),
+                        ),
                     ]));
                 }
 
                 // Build/Run options section
                 lines.push(Line::raw(""));
-                lines.push(Line::from(vec![
-                    Span::styled("Build/Run:      ", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::BOLD)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Build/Run:      ",
+                    Style::default()
+                        .fg(CAT_SUBTEXT0)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 if has_build_cmd || has_output_path {
                     if has_build_cmd {
                         lines.push(Line::from(vec![
-                            Span::styled("  [b] Build     ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
+                            Span::styled(
+                                "  [b] Build     ",
+                                Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                            ),
                             Span::styled("Build project", Style::default().fg(CAT_TEXT)),
                         ]));
                     }
                     if has_output_path {
                         lines.push(Line::from(vec![
-                            Span::styled("  [r] Run       ", Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
+                            Span::styled(
+                                "  [r] Run       ",
+                                Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                            ),
                             Span::styled("Build & run project", Style::default().fg(CAT_TEXT)),
                         ]));
                     }
                 } else {
-                    lines.push(Line::from(vec![
-                        Span::styled("  No build/run configuration in template", Style::default().fg(CAT_SUBTEXT0)),
-                    ]));
+                    lines.push(Line::from(vec![Span::styled(
+                        "  No build/run configuration in template",
+                        Style::default().fg(CAT_SUBTEXT0),
+                    )]));
                 }
 
                 lines
@@ -1378,18 +1683,34 @@ impl App {
                 if self.cleaner_items.is_empty() {
                     lines.push(Line::from("No cleaner scan data. Press [c][s] to scan."));
                 } else {
-                    let total_size: u64 = self.cleaner_items.iter().map(|item| item.size_bytes).sum();
+                    let total_size: u64 =
+                        self.cleaner_items.iter().map(|item| item.size_bytes).sum();
                     lines.push(Line::from(vec![
-                        Span::styled("Scanned heavy directories. Total reclaimable size: ", Style::default().fg(CAT_SUBTEXT0)),
-                        Span::styled(format_size(total_size), Style::default().fg(CAT_GREEN).add_modifier(Modifier::BOLD)),
+                        Span::styled(
+                            "Scanned heavy directories. Total reclaimable size: ",
+                            Style::default().fg(CAT_SUBTEXT0),
+                        ),
+                        Span::styled(
+                            format_size(total_size),
+                            Style::default().fg(CAT_GREEN).add_modifier(Modifier::BOLD),
+                        ),
                     ]));
                     lines.push(Line::raw(""));
                     for item in &self.cleaner_items {
                         lines.push(Line::from(vec![
                             Span::styled("• ", Style::default().fg(CAT_SUBTEXT0)),
-                            Span::styled(item.path.display().to_string(), Style::default().fg(CAT_TEXT)),
-                            Span::styled(format!(" ({}) ", item.kind), Style::default().fg(CAT_MAUVE)),
-                            Span::styled(format!("- {}", format_size(item.size_bytes)), Style::default().fg(CAT_BLUE)),
+                            Span::styled(
+                                item.path.display().to_string(),
+                                Style::default().fg(CAT_TEXT),
+                            ),
+                            Span::styled(
+                                format!(" ({}) ", item.kind),
+                                Style::default().fg(CAT_MAUVE),
+                            ),
+                            Span::styled(
+                                format!("- {}", format_size(item.size_bytes)),
+                                Style::default().fg(CAT_BLUE),
+                            ),
                         ]));
                     }
                 }
@@ -1401,18 +1722,27 @@ impl App {
                 if env_files.is_empty() {
                     lines.push(Line::from("No .env files found in project."));
                 } else {
-                    lines.push(Line::from(format!("Found {} .env file(s) in this project:", env_files.len())));
+                    lines.push(Line::from(format!(
+                        "Found {} .env file(s) in this project:",
+                        env_files.len()
+                    )));
                     lines.push(Line::raw(""));
                     for env_path in &env_files {
                         let is_enc = is_env_encrypted(env_path);
                         let status_span = if is_enc {
-                            Span::styled("[ ENCRYPTED ]", Style::default().fg(CAT_GREEN).add_modifier(Modifier::BOLD))
+                            Span::styled(
+                                "[ ENCRYPTED ]",
+                                Style::default().fg(CAT_GREEN).add_modifier(Modifier::BOLD),
+                            )
                         } else {
                             Span::styled("[ PLAINTEXT ]", Style::default().fg(CAT_RED))
                         };
                         lines.push(Line::from(vec![
                             Span::raw("  • "),
-                            Span::styled(env_path.display().to_string(), Style::default().fg(CAT_TEXT)),
+                            Span::styled(
+                                env_path.display().to_string(),
+                                Style::default().fg(CAT_TEXT),
+                            ),
                             Span::raw("   "),
                             status_span,
                         ]));
@@ -1422,9 +1752,12 @@ impl App {
             }
             ProjectTab::Git => {
                 let mut lines = Vec::new();
-                lines.push(Line::from(vec![
-                    Span::styled("Git Status Summary:", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::BOLD))
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Git Status Summary:",
+                    Style::default()
+                        .fg(CAT_SUBTEXT0)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 lines.push(Line::raw(""));
                 if self.git_status_summary.is_empty() {
                     lines.push(Line::from("No parsed status. Press [g][s] to refresh."));
@@ -1441,7 +1774,10 @@ impl App {
                         } else {
                             CAT_TEXT
                         };
-                        lines.push(Line::from(Span::styled(summary_line.clone(), Style::default().fg(fg))));
+                        lines.push(Line::from(Span::styled(
+                            summary_line.clone(),
+                            Style::default().fg(fg),
+                        )));
                     }
                 }
                 lines
@@ -1462,17 +1798,26 @@ impl App {
         } else {
             None
         };
-        
+
         let status = if self.pending_prefix != PendingKeyPrefix::None {
             self.status_message.clone().unwrap_or_default()
         } else {
-            self.status_message.clone().unwrap_or_else(|| "Ready".to_string())
+            self.status_message
+                .clone()
+                .unwrap_or_else(|| "Ready".to_string())
         };
 
-        let footer_fg = if self.pending_prefix != PendingKeyPrefix::None { CAT_MAUVE } else { CAT_BLUE };
+        let footer_fg = if self.pending_prefix != PendingKeyPrefix::None {
+            CAT_MAUVE
+        } else {
+            CAT_BLUE
+        };
 
         let line = Line::from(vec![
-            Span::styled("Tabs: h/l or Tab • Vim-Keys: [g]it [s]ecrets [c]leaner • Esc dashboard • q quit", Style::default().fg(CAT_SUBTEXT0)),
+            Span::styled(
+                "Tabs: h/l or Tab • Vim-Keys: [g]it [s]ecrets [c]leaner • Esc dashboard • q quit",
+                Style::default().fg(CAT_SUBTEXT0),
+            ),
             Span::raw("   "),
             Span::styled(
                 match spinner {
@@ -1490,7 +1835,11 @@ impl App {
 
     fn draw_overlay(&mut self, frame: &mut Frame) {
         if self.creation_step == CreationStep::EnterName {
-            self.draw_input_popup(frame, "Step 1: Enter Project Name", &self.creation_name_input);
+            self.draw_input_popup(
+                frame,
+                "Step 1: Enter Project Name",
+                &self.creation_name_input,
+            );
         } else if self.creation_step == CreationStep::SelectTemplate {
             self.draw_template_select_popup(frame);
         } else if self.creation_step == CreationStep::Executing {
@@ -1511,7 +1860,10 @@ impl App {
         frame.render_widget(block.clone(), area);
         let inner = block.inner(area);
         let mut state = self.template_state.clone();
-        state.select(Some(self.selected_template_idx.min(self.templates.len().saturating_sub(1))));
+        state.select(Some(
+            self.selected_template_idx
+                .min(self.templates.len().saturating_sub(1)),
+        ));
         let items = self
             .templates
             .iter()
@@ -1527,7 +1879,9 @@ impl App {
         let area = centered_rect(60, 20, frame.area());
         frame.render_widget(Clear, area);
         let block = Self::base_block(title).border_style(Style::default().fg(CAT_BLUE));
-        let paragraph = Paragraph::new(format!("{value}█")).block(block).style(Style::default().fg(CAT_TEXT));
+        let paragraph = Paragraph::new(format!("{value}█"))
+            .block(block)
+            .style(Style::default().fg(CAT_TEXT));
         frame.render_widget(paragraph, area);
     }
 
@@ -1544,7 +1898,9 @@ impl App {
         frame.render_widget(Clear, area);
         let block = Self::base_block("Error Popup (press x to clear)")
             .border_style(Style::default().fg(CAT_RED));
-        let paragraph = Paragraph::new(error).block(block).style(Style::default().fg(CAT_TEXT));
+        let paragraph = Paragraph::new(error)
+            .block(block)
+            .style(Style::default().fg(CAT_TEXT));
         frame.render_widget(paragraph, area);
     }
 
@@ -1572,54 +1928,50 @@ impl App {
 
     fn list_next(&mut self) {
         match self.screen {
-            ActiveScreen::Dashboard => {
-                match self.dashboard_panel {
-                    DashboardPanel::Projects => {
-                        let next_idx = match self.project_state.selected() {
-                            Some(i) if !self.projects.is_empty() => (i + 1) % self.projects.len(),
-                            _ if !self.projects.is_empty() => 0,
-                            _ => return,
-                        };
-                        self.project_state.select(Some(next_idx));
-                    }
-                    DashboardPanel::Templates => {
-                        let next_idx = match self.template_state.selected() {
-                            Some(i) if !self.templates.is_empty() => (i + 1) % self.templates.len(),
-                            _ if !self.templates.is_empty() => 0,
-                            _ => return,
-                        };
-                        self.template_state.select(Some(next_idx));
-                    }
+            ActiveScreen::Dashboard => match self.dashboard_panel {
+                DashboardPanel::Projects => {
+                    let next_idx = match self.project_state.selected() {
+                        Some(i) if !self.projects.is_empty() => (i + 1) % self.projects.len(),
+                        _ if !self.projects.is_empty() => 0,
+                        _ => return,
+                    };
+                    self.project_state.select(Some(next_idx));
                 }
-            }
+                DashboardPanel::Templates => {
+                    let next_idx = match self.template_state.selected() {
+                        Some(i) if !self.templates.is_empty() => (i + 1) % self.templates.len(),
+                        _ if !self.templates.is_empty() => 0,
+                        _ => return,
+                    };
+                    self.template_state.select(Some(next_idx));
+                }
+            },
             ActiveScreen::ProjectOptions => {}
         }
     }
 
     fn list_prev(&mut self) {
         match self.screen {
-            ActiveScreen::Dashboard => {
-                match self.dashboard_panel {
-                    DashboardPanel::Projects => {
-                        let prev_idx = match self.project_state.selected() {
-                            Some(0) if !self.projects.is_empty() => self.projects.len() - 1,
-                            Some(i) if !self.projects.is_empty() => i.saturating_sub(1),
-                            _ if !self.projects.is_empty() => 0,
-                            _ => return,
-                        };
-                        self.project_state.select(Some(prev_idx));
-                    }
-                    DashboardPanel::Templates => {
-                        let prev_idx = match self.template_state.selected() {
-                            Some(0) if !self.templates.is_empty() => self.templates.len() - 1,
-                            Some(i) if !self.templates.is_empty() => i.saturating_sub(1),
-                            _ if !self.templates.is_empty() => 0,
-                            _ => return,
-                        };
-                        self.template_state.select(Some(prev_idx));
-                    }
+            ActiveScreen::Dashboard => match self.dashboard_panel {
+                DashboardPanel::Projects => {
+                    let prev_idx = match self.project_state.selected() {
+                        Some(0) if !self.projects.is_empty() => self.projects.len() - 1,
+                        Some(i) if !self.projects.is_empty() => i.saturating_sub(1),
+                        _ if !self.projects.is_empty() => 0,
+                        _ => return,
+                    };
+                    self.project_state.select(Some(prev_idx));
                 }
-            }
+                DashboardPanel::Templates => {
+                    let prev_idx = match self.template_state.selected() {
+                        Some(0) if !self.templates.is_empty() => self.templates.len() - 1,
+                        Some(i) if !self.templates.is_empty() => i.saturating_sub(1),
+                        _ if !self.templates.is_empty() => 0,
+                        _ => return,
+                    };
+                    self.template_state.select(Some(prev_idx));
+                }
+            },
             ActiveScreen::ProjectOptions => {}
         }
     }
@@ -1675,7 +2027,7 @@ impl App {
                 self.workspace_root.display()
             ));
         }
-        
+
         if self.skip_template_selection {
             self.creation_step = CreationStep::SelectTemplate;
             let res = self.confirm_template_selection();
@@ -1761,18 +2113,21 @@ impl App {
         })
     }
 
-    fn action_open_ide(&mut self, project_path: PathBuf, terminal: Option<&mut DefaultTerminal>) -> AppResult<()> {
+    fn action_open_ide(
+        &mut self,
+        project_path: PathBuf,
+        terminal: Option<&mut DefaultTerminal>,
+    ) -> AppResult<()> {
         if let Some(t) = terminal {
             let _ = ratatui::restore();
-            let status = ProcessCommand::new("nvim")
-                .arg(&project_path)
-                .status();
+            let status = ProcessCommand::new("nvim").arg(&project_path).status();
             *t = ratatui::init();
             let _ = t.clear();
 
             match status {
                 Ok(s) if s.success() => {
-                    self.status_message = Some(format!("Closed Neovim for {}", project_path.display()));
+                    self.status_message =
+                        Some(format!("Closed Neovim for {}", project_path.display()));
                     Ok(())
                 }
                 Ok(s) => Err(format!("Neovim exited with non-zero status: {s}")),
@@ -1783,18 +2138,21 @@ impl App {
         }
     }
 
-    fn action_open_template(&mut self, template_path: PathBuf, terminal: Option<&mut DefaultTerminal>) -> AppResult<()> {
+    fn action_open_template(
+        &mut self,
+        template_path: PathBuf,
+        terminal: Option<&mut DefaultTerminal>,
+    ) -> AppResult<()> {
         if let Some(t) = terminal {
             let _ = ratatui::restore();
-            let status = ProcessCommand::new("nvim")
-                .arg(&template_path)
-                .status();
+            let status = ProcessCommand::new("nvim").arg(&template_path).status();
             *t = ratatui::init();
             let _ = t.clear();
 
             match status {
                 Ok(s) if s.success() => {
-                    self.status_message = Some(format!("Closed template {}", template_path.display()));
+                    self.status_message =
+                        Some(format!("Closed template {}", template_path.display()));
                     Ok(())
                 }
                 Ok(s) => Err(format!("Neovim exited with non-zero status: {s}")),
@@ -1843,7 +2201,12 @@ impl App {
                 .args(["status", "--porcelain"])
                 .current_dir(&project_path)
                 .output()
-                .map_err(|e| format!("Failed to execute git status in {}: {e}", project_path.display()))?;
+                .map_err(|e| {
+                    format!(
+                        "Failed to execute git status in {}: {e}",
+                        project_path.display()
+                    )
+                })?;
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -1870,9 +2233,12 @@ impl App {
                 cmd.arg(path);
             }
             cmd.current_dir(&project_path);
-            let output = cmd
-                .output()
-                .map_err(|e| format!("Failed to execute git add in {}: {e}", project_path.display()))?;
+            let output = cmd.output().map_err(|e| {
+                format!(
+                    "Failed to execute git add in {}: {e}",
+                    project_path.display()
+                )
+            })?;
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -1892,31 +2258,41 @@ impl App {
     fn action_build_project(&mut self, project_path: PathBuf) -> AppResult<()> {
         // Extract template info to get build configuration
         let template_name = match self.selected_project() {
-            Some(project) => project.template_name.clone().unwrap_or_else(|| "".to_string()),
+            Some(project) => project
+                .template_name
+                .clone()
+                .unwrap_or_else(|| "".to_string()),
             None => "".to_string(),
         };
 
         // Find the template to get build config
-        let template_config = self.templates.iter()
+        let template_config = self
+            .templates
+            .iter()
             .find(|t| t.name == template_name)
             .cloned();
 
         self.spawn_task(move || {
             // Change to project directory
-            let current_dir = env::current_dir()
-                .map_err(|e| format!("Failed to get current directory: {e}"))?;
+            let current_dir =
+                env::current_dir().map_err(|e| format!("Failed to get current directory: {e}"))?;
 
             // Change to build directory if specified
-            let build_dir = template_config.as_ref()
+            let build_dir = template_config
+                .as_ref()
                 .and_then(|t| t.build_dir.as_ref())
                 .map(|dir| project_path.join(dir))
                 .unwrap_or(project_path.clone());
 
             if !build_dir.exists() {
-                return Err(format!("Build directory does not exist: {}", build_dir.display()));
+                return Err(format!(
+                    "Build directory does not exist: {}",
+                    build_dir.display()
+                ));
             }
 
-            let build_cmd = template_config.as_ref()
+            let build_cmd = template_config
+                .as_ref()
                 .and_then(|t| t.build_cmd.as_ref())
                 .map(|cmd| cmd.as_str())
                 .unwrap_or("make"); // Default to make if not specified
@@ -1957,60 +2333,69 @@ impl App {
     }
 
     fn action_run_project(&mut self, project_path: PathBuf) -> AppResult<()> {
-        // Similar to build but runs the output
         let template_name = match self.selected_project() {
-            Some(project) => project.template_name.clone().unwrap_or_else(|| "".to_string()),
+            Some(project) => project
+                .template_name
+                .clone()
+                .unwrap_or_else(|| "".to_string()),
             None => "".to_string(),
         };
 
-        let template_config = self.templates.iter()
+        let template_config = self
+            .templates
+            .iter()
             .find(|t| t.name == template_name)
             .cloned();
 
+        let current_dir =
+            env::current_dir().map_err(|e| format!("Failed to get current directory: {e}"))?;
+
+        let build_dir = template_config
+            .as_ref()
+            .and_then(|t| t.build_dir.as_ref())
+            .map(|dir| project_path.join(dir))
+            .unwrap_or_else(|| project_path.clone());
+
+        let output_path = template_config
+            .as_ref()
+            .and_then(|t| t.output_path.as_ref())
+            .map(|path| build_dir.join(path))
+            .unwrap_or_else(|| build_dir.join("a.out"));
+
+        if !output_path.exists() {
+            match self.action_build_project(project_path.clone()) {
+                Ok(()) => {
+                    // Build succeeded, now recursively run and exit this call
+                    return self.action_run_project(project_path);
+                }
+                Err(_err_string) => {
+                    return Err(format!("Error during build. {}", build_dir.display()));
+                }
+            }
+        }
+
         self.spawn_task(move || {
-            // Change to project directory
-            let current_dir = env::current_dir()
-                .map_err(|e| format!("Failed to get current directory: {e}"))?;
-
-            // Change to build directory if specified, otherwise project root
-            let build_dir = template_config.as_ref()
-                .and_then(|t| t.build_dir.as_ref())
-                .map(|dir| project_path.join(dir))
-                .unwrap_or(project_path.clone());
-
             if !build_dir.exists() {
-                return Err(format!("Build directory does not exist: {}", build_dir.display()));
+                return Err(format!(
+                    "Build directory does not exist: {}",
+                    build_dir.display()
+                ));
             }
 
-            let output_path = template_config.as_ref()
-                .and_then(|t| t.output_path.as_ref())
-                .map(|path| build_dir.join(path))
-                .unwrap_or(build_dir.join("a.out")); // Default executable name
-
-            if !output_path.exists() {
-                return Err(format!("Output file does not exist: {}. Please build first.", output_path.display()));
-            }
-
-            // Change to build directory
             if let Err(e) = env::set_current_dir(&build_dir) {
                 return Err(format!("Failed to change to build directory: {e}"));
             }
 
-            // Execute the program
             let mut cmd = ProcessCommand::new(&output_path);
             let output = cmd
                 .output()
                 .map_err(|e| format!("Failed to execute program: {e}"))?;
 
-            // Restore original directory
             let _ = env::set_current_dir(&current_dir);
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-                return Ok(BackgroundUpdate {
-                    error: Some(format!("Program execution failed: {}", stderr.trim())),
-                    ..Default::default()
-                });
+                return Err(format!("Program execution failed: {}", stderr.trim()));
             }
 
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -2021,7 +2406,6 @@ impl App {
             }
 
             Ok(BackgroundUpdate {
-                status_message: Some(result),
                 ..Default::default()
             })
         })
@@ -2070,18 +2454,28 @@ impl App {
             let backups_dir = PathBuf::from("/backups");
             let _ = fs::create_dir_all(&backups_dir);
 
-            let final_backups_dir = if fs::metadata(&backups_dir).map(|m| m.permissions().readonly()).unwrap_or(true) {
-                let home = dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
+            let final_backups_dir = if fs::metadata(&backups_dir)
+                .map(|m| m.permissions().readonly())
+                .unwrap_or(true)
+            {
+                let home = dirs::home_dir()
+                    .ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
                 home.join("backups")
             } else {
                 backups_dir
             };
-            fs::create_dir_all(&final_backups_dir).map_err(|e| format!("Unable to create backups directory: {e}"))?;
+            fs::create_dir_all(&final_backups_dir)
+                .map_err(|e| format!("Unable to create backups directory: {e}"))?;
 
             let project_name = project_path
                 .file_name()
                 .and_then(|s| s.to_str())
-                .ok_or_else(|| format!("Unable to derive project name from {}", project_path.display()))?;
+                .ok_or_else(|| {
+                    format!(
+                        "Unable to derive project name from {}",
+                        project_path.display()
+                    )
+                })?;
             let archive_path = final_backups_dir.join(format!("{project_name}.tar.gz"));
             let parent = project_path.parent().ok_or_else(|| {
                 format!(
@@ -2151,7 +2545,8 @@ impl App {
     fn create_new_template(&mut self, name: String) -> AppResult<()> {
         let provider = Arc::clone(&self.provider);
         self.spawn_task(move || {
-            let home = dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
+            let home =
+                dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
             let template_dir = home.join(".config/unit-projman/templates");
             fs::create_dir_all(&template_dir).map_err(|e| e.to_string())?;
 
@@ -2161,8 +2556,14 @@ impl App {
             let mut structure = HashMap::new();
 
             let mut src_files = HashMap::new();
-            src_files.insert("README.md".to_string(), format!("# {name}\n\nA new project created with template '{name}'.\n"));
-            src_files.insert("main.rs".to_string(), "fn main() {\n    println!(\"Hello, world!\");\n}\n".to_string());
+            src_files.insert(
+                "README.md".to_string(),
+                format!("# {name}\n\nA new project created with template '{name}'.\n"),
+            );
+            src_files.insert(
+                "main.rs".to_string(),
+                "fn main() {\n    println!(\"Hello, world!\");\n}\n".to_string(),
+            );
             structure.insert("src/".to_string(), src_files);
 
             let include_files = HashMap::new();
@@ -2195,7 +2596,8 @@ impl App {
     fn delete_template(&mut self, name: String) -> AppResult<()> {
         let provider = Arc::clone(&self.provider);
         self.spawn_task(move || {
-            let home = dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
+            let home =
+                dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
             let template_dir = home.join(".config/unit-projman/templates");
             let template_path = template_dir.join(format!("{}.json", name));
             if template_path.exists() {
@@ -2304,17 +2706,27 @@ impl App {
     fn action_archive_and_delete_project(&mut self, project_path: PathBuf) -> AppResult<()> {
         let provider = Arc::clone(&self.provider);
         self.spawn_task(move || {
-            let home = dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
+            let home =
+                dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
             let backups_dir = home.join("backups");
-            fs::create_dir_all(&backups_dir).map_err(|e| format!("Unable to create backups directory: {e}"))?;
+            fs::create_dir_all(&backups_dir)
+                .map_err(|e| format!("Unable to create backups directory: {e}"))?;
 
             let project_name = project_path
                 .file_name()
                 .and_then(|s| s.to_str())
-                .ok_or_else(|| format!("Unable to derive project name from {}", project_path.display()))?;
+                .ok_or_else(|| {
+                    format!(
+                        "Unable to derive project name from {}",
+                        project_path.display()
+                    )
+                })?;
             let archive_path = backups_dir.join(format!("{project_name}.tar.gz"));
             let parent = project_path.parent().ok_or_else(|| {
-                format!("Unable to determine parent directory for {}", project_path.display())
+                format!(
+                    "Unable to determine parent directory for {}",
+                    project_path.display()
+                )
             })?;
 
             let output = ProcessCommand::new("tar")
@@ -2329,14 +2741,21 @@ impl App {
                 return Err(format!("Archive failed: {}", stderr.trim()));
             }
 
-            fs::remove_dir_all(&project_path)
-                .map_err(|e| format!("Failed to delete project directory {}: {e}", project_path.display()))?;
+            fs::remove_dir_all(&project_path).map_err(|e| {
+                format!(
+                    "Failed to delete project directory {}: {e}",
+                    project_path.display()
+                )
+            })?;
 
             provider.remove_project(&project_path)?;
             let projects = provider.get_all_projects()?;
 
             Ok(BackgroundUpdate {
-                status_message: Some(format!("Archived to {} and deleted project folder", archive_path.display())),
+                status_message: Some(format!(
+                    "Archived to {} and deleted project folder",
+                    archive_path.display()
+                )),
                 projects: Some(projects),
                 ..Default::default()
             })
@@ -2456,9 +2875,12 @@ fn directory_size(dir: &Path) -> AppResult<u64> {
     let mut total = 0_u64;
     for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() {
-            let meta = entry
-                .metadata()
-                .map_err(|e| format!("Unable to read metadata for {}: {e}", entry.path().display()))?;
+            let meta = entry.metadata().map_err(|e| {
+                format!(
+                    "Unable to read metadata for {}: {e}",
+                    entry.path().display()
+                )
+            })?;
             total = total.saturating_add(meta.len());
         }
     }
@@ -2527,7 +2949,7 @@ fn format_size(bytes: u64) -> String {
     } else if bytes < 1024 * 1024 {
         format!("{:.2} KB", bytes as f64 / 1024.0)
     } else if bytes < 1024 * 1024 * 1024 {
-        format!("{:.2} MB", bytes as f64 / (1024.0 * 1024.0))
+        format!("{:.2} MB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
     } else {
         format!("{:.2} GB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
     }
@@ -2541,11 +2963,21 @@ fn is_env_encrypted(path: &Path) -> bool {
     }
 }
 
-fn get_directory_tree_lines(path: &Path, prefix: &str, depth: usize, max_depth: usize) -> Vec<Line<'static>> {
+fn get_directory_tree_lines(
+    path: &Path,
+    prefix: &str,
+    depth: usize,
+    max_depth: usize,
+) -> Vec<Line<'static>> {
     if depth > max_depth {
         return vec![Line::from(vec![
             Span::styled(prefix.to_string(), Style::default().fg(CAT_SUBTEXT0)),
-            Span::styled("... (depth limit reached)", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::ITALIC)),
+            Span::styled(
+                "... (depth limit reached)",
+                Style::default()
+                    .fg(CAT_SUBTEXT0)
+                    .add_modifier(Modifier::ITALIC),
+            ),
         ])];
     }
     let mut lines = Vec::new();
@@ -2554,7 +2986,16 @@ fn get_directory_tree_lines(path: &Path, prefix: &str, depth: usize, max_depth: 
             let mut list = Vec::new();
             for entry in read.filter_map(Result::ok) {
                 let name = entry.file_name().to_string_lossy().into_owned();
-                if name == "target" || name == "node_modules" || name == ".git" || name == "build" || name == "dist" || (name.starts_with('.') && name != ".env" && name != ".gitignore" && name != ".unit-template") {
+                if name == "target"
+                    || name == "node_modules"
+                    || name == ".git"
+                    || name == "build"
+                    || name == "dist"
+                    || (name.starts_with('.')
+                        && name != ".env"
+                        && name != ".gitignore"
+                        && name != ".unit-template")
+                {
                     continue;
                 }
                 list.push(entry);
@@ -2585,9 +3026,17 @@ fn get_directory_tree_lines(path: &Path, prefix: &str, depth: usize, max_depth: 
             lines.push(Line::from(vec![
                 Span::styled(prefix.to_string(), Style::default().fg(CAT_SUBTEXT0)),
                 Span::styled(connector.to_string(), Style::default().fg(CAT_SUBTEXT0)),
-                Span::styled(format!("{file_name}/"), Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("{file_name}/"),
+                    Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+                ),
             ]));
-            let sub_lines = get_directory_tree_lines(&entry.path(), &format!("{prefix}{new_prefix}"), depth + 1, max_depth);
+            let sub_lines = get_directory_tree_lines(
+                &entry.path(),
+                &format!("{prefix}{new_prefix}"),
+                depth + 1,
+                max_depth,
+            );
             lines.extend(sub_lines);
         } else {
             let file_color = if file_name == ".env" {
@@ -2609,10 +3058,13 @@ fn get_directory_tree_lines(path: &Path, prefix: &str, depth: usize, max_depth: 
 
 fn get_template_tree_lines(template: &TemplateDef) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
-    
+
     lines.push(Line::from(vec![
         Span::styled(". (template: ", Style::default().fg(CAT_SUBTEXT0)),
-        Span::styled(template.name.clone(), Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            template.name.clone(),
+            Style::default().fg(CAT_MAUVE).add_modifier(Modifier::BOLD),
+        ),
         Span::styled(")", Style::default().fg(CAT_SUBTEXT0)),
     ]));
 
@@ -2622,12 +3074,19 @@ fn get_template_tree_lines(template: &TemplateDef) -> Vec<Line<'static>> {
     let dirs_len = dirs.len();
     for (i, dir_name) in dirs.iter().enumerate() {
         let is_last_dir = i == dirs_len - 1;
-        let dir_connector = if is_last_dir { "└── " } else { "├── " };
+        let dir_connector = if is_last_dir {
+            "└── "
+        } else {
+            "├── "
+        };
         let dir_prefix = if is_last_dir { "    " } else { "│   " };
 
         lines.push(Line::from(vec![
             Span::styled(dir_connector.to_string(), Style::default().fg(CAT_SUBTEXT0)),
-            Span::styled((*dir_name).clone(), Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                (*dir_name).clone(),
+                Style::default().fg(CAT_BLUE).add_modifier(Modifier::BOLD),
+            ),
         ]));
 
         if let Some(files_map) = template.structure.get(*dir_name) {
@@ -2636,20 +3095,30 @@ fn get_template_tree_lines(template: &TemplateDef) -> Vec<Line<'static>> {
             let files_len = file_names.len();
             for (j, file_name) in file_names.iter().enumerate() {
                 let is_last_file = j == files_len - 1;
-                let file_connector = if is_last_file { "└── " } else { "├── " };
+                let file_connector = if is_last_file {
+                    "└── "
+                } else {
+                    "├── "
+                };
                 lines.push(Line::from(vec![
                     Span::styled(dir_prefix.to_string(), Style::default().fg(CAT_SUBTEXT0)),
-                    Span::styled(file_connector.to_string(), Style::default().fg(CAT_SUBTEXT0)),
+                    Span::styled(
+                        file_connector.to_string(),
+                        Style::default().fg(CAT_SUBTEXT0),
+                    ),
                     Span::styled((*file_name).clone(), Style::default().fg(CAT_TEXT)),
                 ]));
             }
         }
     }
-    
+
     if template.structure.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled("└── (empty structure)", Style::default().fg(CAT_SUBTEXT0).add_modifier(Modifier::ITALIC)),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            "└── (empty structure)",
+            Style::default()
+                .fg(CAT_SUBTEXT0)
+                .add_modifier(Modifier::ITALIC),
+        )]));
     }
 
     lines

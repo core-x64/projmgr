@@ -1,8 +1,10 @@
 use std::collections::HashMap;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use dirs;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +35,22 @@ pub struct TemplateDef {
     pub init_cmd: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ProjectConfig {
+    #[serde(default)]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub build_cmd: Option<String>,
+    #[serde(default)]
+    pub run_cmd: Option<String>,
+    #[serde(default)]
+    pub init_cmd: Option<String>,
+    #[serde(default)]
+    pub output_path: Option<String>,
+    #[serde(default)]
+    pub build_dir: Option<String>,
+}
+
 pub trait ProjectProvider {
     fn get_all_projects(&self) -> AppResult<Vec<ProjectData>>;
     fn add_project(&self, path: PathBuf) -> AppResult<()>;
@@ -49,7 +67,8 @@ impl SqliteProjectProvider {
     pub fn new(db_path: impl Into<PathBuf>) -> AppResult<Self> {
         let db_path = db_path.into();
         if let Some(parent) = db_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("Unable to create DB directory: {e}"))?;
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Unable to create DB directory: {e}"))?;
         }
         let provider = Self { db_path };
         provider.init_schema()?;
@@ -102,14 +121,54 @@ impl SqliteProjectProvider {
             .ok_or_else(|| format!("Could not derive project name from path {}", path.display()))
     }
 
-    fn read_template_hint(path: &Path) -> Option<String> {
-        let hint_path = path.join(".unit-template");
-        let raw = fs::read_to_string(hint_path).ok()?;
-        let trimmed = raw.trim();
-        if trimmed.is_empty() {
-            None
+    pub fn expand_path(path: &str) -> AppResult<PathBuf> {
+        let path = if path.starts_with("~/") {
+            if let Some(home) = dirs::home_dir() {
+                home.join(&path[2..])
+            } else {
+                return Err("Unable to resolve HOME directory".to_string());
+            }
         } else {
-            Some(trimmed.to_string())
+            PathBuf::from(path)
+        };
+
+        // Convert relative path to absolute
+        let absolute_path = if path.is_relative() {
+            env::current_dir().map_err(|e| e.to_string())?.join(&path)
+        } else {
+            path
+        };
+
+        Ok(absolute_path)
+    }
+
+    fn read_template_config(path: &Path) -> Option<ProjectConfig> {
+        let config_path = path.join(".unit.toml");
+        // Fallback to old .unit-template for backward compatibility
+        let legacy_path = path.join(".unit-template");
+
+        // Try new TOML config first
+        if config_path.exists() {
+            let raw = fs::read_to_string(config_path).ok()?;
+            toml::from_str(&raw).ok()
+        } else if legacy_path.exists() {
+            // Backward compatibility: read simple template name from .unit-template
+            let raw = fs::read_to_string(legacy_path).ok()?;
+            let template_name = raw.trim();
+            if !template_name.is_empty() {
+                Some(ProjectConfig {
+                    template: Some(template_name.to_string()),
+                    build_cmd: None,
+                    run_cmd: None,
+                    init_cmd: None,
+                    output_path: None,
+                    build_dir: None,
+                })
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 
@@ -164,10 +223,22 @@ impl ProjectProvider for SqliteProjectProvider {
     }
 
     fn add_project(&self, path: PathBuf) -> AppResult<()> {
+        // Validate that the project path exists
+        if !path.exists() {
+            return Err(format!("Project path does not exist: {}", path.display()));
+        }
+
         let name = Self::parse_project_name(&path)?;
         let conn = self.connection()?;
-        let template_id = match Self::read_template_hint(&path) {
-            Some(template_name) => Some(Self::ensure_template_row(&conn, &template_name)?),
+        let template_id = match Self::read_template_config(&path) {
+            Some(config) => {
+                let template_id = match config.template {
+                    Some(template_name) => Some(Self::ensure_template_row(&conn, &template_name)?),
+                    None => None,
+                };
+
+                template_id
+            }
             None => None,
         };
 
@@ -176,7 +247,12 @@ impl ProjectProvider for SqliteProjectProvider {
             INSERT INTO projects (name, path, last_accessed, template_id)
             VALUES (?1, ?2, ?3, ?4)
             ",
-            params![name, path.to_string_lossy().to_string(), Self::now_unix(), template_id],
+            params![
+                name,
+                path.to_string_lossy().to_string(),
+                Self::now_unix(),
+                template_id
+            ],
         )
         .map_err(|e| format!("Failed to insert project '{}': {e}", path.display()))?;
 
@@ -198,15 +274,20 @@ impl ProjectProvider for SqliteProjectProvider {
     }
 
     fn get_templates(&self) -> AppResult<Vec<TemplateDef>> {
-        let home = dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
+        let home =
+            dirs::home_dir().ok_or_else(|| "Unable to resolve HOME directory".to_string())?;
         let template_dir = home.join(".config/unit-projman/templates");
         if !template_dir.exists() {
             return Ok(Vec::new());
         }
 
         let mut templates = Vec::new();
-        let entries = fs::read_dir(&template_dir)
-            .map_err(|e| format!("Unable to read template directory {}: {e}", template_dir.display()))?;
+        let entries = fs::read_dir(&template_dir).map_err(|e| {
+            format!(
+                "Unable to read template directory {}: {e}",
+                template_dir.display()
+            )
+        })?;
 
         for entry in entries {
             let entry = entry.map_err(|e| format!("Failed to read template entry: {e}"))?;
